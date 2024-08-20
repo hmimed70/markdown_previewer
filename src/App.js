@@ -1,48 +1,63 @@
-import { useEffect, useState } from "react";
-import { marked } from "marked";
-marked.setOptions({
-  breaks: true,
-});
-const initialMarkdown = `
-# Heading 1
-## Heading 2
-[Link](https://www.example.com)
-\`Inline code\`
-\`\`\`
-Code block
-\`\`\`
-- List item
-> Blockquote
-![Image](https://via.placeholder.com/150)
-**Bold text**
+import React, { useState, useEffect } from "react";
 
-New line breaks
-without needing to
-add two spaces at the end of each line.
-`;
+// Define the drum pad data
+const drumPads = [
+  { key: 'Q', id: 'Heater-1', src: 'https://s3.amazonaws.com/freecodecamp/drums/Heater-1.mp3' },
+  { key: 'W', id: 'Heater-2', src: 'https://s3.amazonaws.com/freecodecamp/drums/Heater-2.mp3' },
+  { key: 'E', id: 'Heater-3', src: 'https://s3.amazonaws.com/freecodecamp/drums/Heater-3.mp3' },
+  { key: 'A', id: 'Heater-4', src: 'https://s3.amazonaws.com/freecodecamp/drums/Heater-4_1.mp3' },
+  { key: 'S', id: 'Clap', src: 'https://s3.amazonaws.com/freecodecamp/drums/Heater-6.mp3' },
+  { key: 'D', id: 'Open-HH', src: 'https://s3.amazonaws.com/freecodecamp/drums/Dsc_Oh.mp3' },
+  { key: 'Z', id: 'Kick-n-Hat', src: 'https://s3.amazonaws.com/freecodecamp/drums/Kick_n_Hat.mp3' },
+  { key: 'X', id: 'Kick', src: 'https://s3.amazonaws.com/freecodecamp/drums/RP4_KICK_1.mp3' },
+  { key: 'C', id: 'Closed-HH', src: 'https://s3.amazonaws.com/freecodecamp/drums/Cev_H2.mp3' }
+];
 
 function App() {
-  useEffect(() => {
-    document.getElementById("preview").innerHTML = marked(initialMarkdown, {
-      breaks: true,
-    });
-  }, []);
+  const [displayText, setDisplayText] = useState('');
 
-  const [text, setText] = useState(initialMarkdown);
-  const onChange = (event) => {
-     setText(event.target.value);
-     document.getElementById("preview").innerHTML = marked(event.target.value, {
-      breaks: true,})
-  }
+  const playSound = (key, id) => {
+    const audio = document.getElementById(key);
+    audio.currentTime = 0;
+    audio.play();
+    setDisplayText(id);
+  };
+
+  const handleKeyPress = (event) => {
+    const key = event.key.toUpperCase();
+    const pad = drumPads.find(p => p.key === key);
+    if (pad) {
+      playSound(pad.key, pad.id);
+    }
+  };
+ 
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyPress);
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+  }, []);
+  
   return (
-    <div className="container">
-        <textarea          placeholder="Enter your Markdown here"
- id="editor" rows={20} style={{width: "50%", padding: "10px"}} cols={50} onChange={(e) => onChange(e)} value={text}>
-        </textarea>
-        <div 
-        id="preview" 
-        dangerouslySetInnerHTML={{ __html: marked(text) }} 
-      />
+    <div className="container" id="drum-machine" >
+       <div id="display">{displayText}</div>
+      <div id="drum-pads">
+        {drumPads.map(pad => (
+             <div
+             key={pad.key}
+             id={pad.id}
+             className="drum-pad"
+             onClick={() => playSound(pad.key, pad.id)}
+           >
+             {pad.key}
+             <audio
+               id={pad.key}
+               className="clip"
+               src={pad.src}
+             />
+           </div>
+        ))}
+      </div>
     </div>
   );
 }
